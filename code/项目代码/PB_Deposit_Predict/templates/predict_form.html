@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预测客户行为 - 银行营销系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 240px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -120px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="font-sans min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <nav class="bg-gradient-to-r from-blue-400 to-purple-400 shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">银行营销客户分析系统</h1>
+            <div class="flex space-x-4">
+                <button onclick="window.location.href='/';"
+                    class="btn bg-white hover:bg-gray-100 text-blue-500 font-bold py-2 px-4 rounded">首页</button>
+                <button onclick="window.location.href='/showall';"
+                    class="btn bg-white hover:bg-gray-100 text-blue-500 font-bold py-2 px-4 rounded">全部展示</button>
+                <button onclick="window.location.href='/predict';"
+                    class="btn bg-white hover:bg-gray-100 text-indigo-500 font-bold py-2 px-4 rounded">客户预测</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 md:p-8 flex-grow">
+        <div class="card p-6 max-w-5xl mx-auto">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">客户购买预测系统</h2>
+            <p class="mb-6 text-gray-600">
+                {{ intro_text }}
+            </p>
+
+            <form action="/predict" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 个人基本信息 -->
+                <div class="rounded-lg bg-blue-50 p-4">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-3 flex items-center">
+                        <span class="mr-2">个人基本信息</span>
+                        <div class="tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">客户的基本个人资料信息</span>
+                        </div>
+                    </h3>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="age">
+                            <span>年龄</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">客户的实际年龄，范围通常在18-90岁之间</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            type="number" id="age" name="age" min="18" max="95" value="40" required>
+                        <span class="text-xs text-gray-500">推荐范围: 18-90岁</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="job">
+                            <span>职业</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">客户的职业类型，选择最接近的类别</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="job" name="job" required>
+                            <option value="admin.">行政/办公室工作</option>
+                            <option value="blue-collar">蓝领/工人</option>
+                            <option value="entrepreneur">企业家/创业者</option>
+                            <option value="housemaid">家政人员</option>
+                            <option value="management" selected>管理人员</option>
+                            <option value="retired">退休人员</option>
+                            <option value="self-employed">自雇/自由职业</option>
+                            <option value="services">服务业从业者</option>
+                            <option value="student">学生</option>
+                            <option value="technician">技术人员</option>
+                            <option value="unemployed">无业/待业</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="marital">
+                            <span>婚姻状况</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">客户的当前婚姻状态</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="marital" name="marital" required>
+                            <option value="married" selected>已婚</option>
+                            <option value="single">未婚</option>
+                            <option value="divorced">离婚/丧偶</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="education">
+                            <span>教育水平</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">客户的最高教育程度</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="education" name="education" required>
+                            <option value="basic.4y">初级教育(4年)</option>
+                            <option value="basic.6y">初级教育(6年)</option>
+                            <option value="basic.9y">初级教育(9年)</option>
+                            <option value="high.school">高中</option>
+                            <option value="illiterate">文盲/无教育背景</option>
+                            <option value="professional.course">职业培训/专科</option>
+                            <option value="university.degree" selected>大学及以上学历</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 财务信息 -->
+                <div class="rounded-lg bg-green-50 p-4">
+                    <h3 class="text-lg font-semibold text-green-700 mb-3 flex items-center">
+                        <span class="mr-2">财务信息</span>
+                        <div class="tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">客户的财务状况相关信息</span>
+                        </div>
+                    </h3>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="default">
+                            <span>是否有信用违约记录</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">客户是否曾经有过信用违约记录</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                            id="default" name="default" required>
+                            <option value="no" selected>无违约记录</option>
+                            <option value="yes">有违约记录</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="housing">
+                            <span>是否有住房贷款</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">客户是否当前有住房贷款</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                            id="housing" name="housing" required>
+                            <option value="no">无住房贷款</option>
+                            <option value="yes" selected>有住房贷款</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="loan">
+                            <span>是否有个人贷款</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">客户是否当前有个人消费贷款</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                            id="loan" name="loan" required>
+                            <option value="no" selected>无个人贷款</option>
+                            <option value="yes">有个人贷款</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 联系信息和营销历史 -->
+                <div class="rounded-lg bg-purple-50 p-4">
+                    <h3 class="text-lg font-semibold text-purple-700 mb-3 flex items-center">
+                        <span class="mr-2">联系信息和营销历史</span>
+                        <div class="tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">与客户联系的方式和历史营销活动记录</span>
+                        </div>
+                    </h3>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="contact">
+                            <span>联系方式</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">最近一次与客户联系的方式</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            id="contact" name="contact" required>
+                            <option value="cellular" selected>手机</option>
+                            <option value="telephone">固定电话</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="month">
+                            <span>联系月份</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">最近一次联系的月份</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            id="month" name="month" required>
+                            <option value="jan">一月</option>
+                            <option value="feb">二月</option>
+                            <option value="mar">三月</option>
+                            <option value="apr">四月</option>
+                            <option value="may" selected>五月</option>
+                            <option value="jun">六月</option>
+                            <option value="jul">七月</option>
+                            <option value="aug">八月</option>
+                            <option value="sep">九月</option>
+                            <option value="oct">十月</option>
+                            <option value="nov">十一月</option>
+                            <option value="dec">十二月</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="day_of_week">
+                            <span>联系星期</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">最近一次联系的星期几</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            id="day_of_week" name="day_of_week" required>
+                            <option value="mon">周一</option>
+                            <option value="tue">周二</option>
+                            <option value="wed">周三</option>
+                            <option value="thu" selected>周四</option>
+                            <option value="fri">周五</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="campaign">
+                            <span>本次营销活动联系次数</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">本次营销活动中与客户联系的次数</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            type="number" id="campaign" name="campaign" min="1" max="50" value="2" required>
+                        <span class="text-xs text-gray-500">推荐范围: 1-20次</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="pdays">
+                            <span>距上次联系天数</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">距离上一次活动中联系客户的天数，-1表示从未联系过</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            type="number" id="pdays" name="pdays" min="-1" max="999" value="30" required>
+                        <span class="text-xs text-gray-500">范围: -1（从未联系过）或正数天数</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="previous">
+                            <span>之前的营销活动次数</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">之前针对这个客户进行的营销活动次数</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            type="number" id="previous" name="previous" min="0" max="50" value="1" required>
+                        <span class="text-xs text-gray-500">推荐范围: 0-10次</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="poutcome">
+                            <span>之前营销结果</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">上一次营销活动的结果</span>
+                            </div>
+                        </label>
+                        <select
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            id="poutcome" name="poutcome" required>
+                            <option value="failure">失败</option>
+                            <option value="nonexistent" selected>不存在（首次联系）</option>
+                            <option value="success">成功</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 宏观经济指标 -->
+                <div class="rounded-lg bg-red-50 p-4">
+                    <h3 class="text-lg font-semibold text-red-700 mb-3 flex items-center">
+                        <span class="mr-2">宏观经济指标</span>
+                        <div class="tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">当前的宏观经济环境指标，影响客户购买决策</span>
+                        </div>
+                    </h3>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="emp_var_rate">
+                            <span>就业变化率</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">就业率变化指标，通常在 -3.4 到 1.4 之间</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                            type="number" id="emp_var_rate" name="emp_var_rate" step="0.1" value="-0.1" required>
+                        <span class="text-xs text-gray-500">推荐范围: -3.4 到 1.4</span>
+                    </div>
+
+                                        <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="cons_price_idx">
+                            <span>消费者物价指数</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">消费者物价指数，通常在 92.2 到 94.8 之间</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                            type="number" id="cons_price_idx" name="cons_price_idx" step="0.1" value="93.2" required>
+                        <span class="text-xs text-gray-500">推荐范围: 92.2 到 94.8</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="cons_conf_idx">
+                            <span>消费者信心指数</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">消费者信心指数，通常在 -50.8 到 -26.9 之间，值越高表示消费者信心越强</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                            type="number" id="cons_conf_idx" name="cons_conf_idx" step="0.1" value="-35.5" required>
+                        <span class="text-xs text-gray-500">推荐范围: -50.8 到 -26.9</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="euribor3m">
+                            <span>欧元区三个月利率</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">欧元区三个月银行同业拆借利率，通常在 0.6 到 5.0 之间</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                            type="number" id="euribor3m" name="euribor3m" step="0.01" value="1.5" required>
+                        <span class="text-xs text-gray-500">推荐范围: 0.6 到 5.0</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-1 flex items-center" for="nr_employed">
+                            <span>就业人数</span>
+                            <div class="tooltip ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltiptext">季节性调整后的就业人数指标，通常在 4963 到 5228 之间</span>
+                            </div>
+                        </label>
+                        <input
+                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                            type="number" id="nr_employed" name="nr_employed" step="0.1" value="5100.0" required>
+                        <span class="text-xs text-gray-500">推荐范围: 4963 到 5228</span>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="col-span-1 md:col-span-2 text-center mt-4">
+                    <button type="submit"
+                        class="btn bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg">
+                        预测客户行为
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
