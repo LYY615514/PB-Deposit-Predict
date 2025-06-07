@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>风险预警仪表板 - 银行营销客户分析系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .btn {
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <nav class="bg-gradient-to-r from-red-400 to-pink-400 shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">风险预警仪表板</h1>
+            <div class="flex space-x-4">
+                <button onclick="window.location.href='/';"
+                    class="btn bg-white hover:bg-gray-100 text-red-500 font-bold py-2 px-4 rounded">
+                    <i class="fas fa-home mr-2"></i>返回首页
+                </button>
+                <button onclick="window.location.href='/risk';"
+                    class="btn bg-white hover:bg-gray-100 text-red-500 font-bold py-2 px-4 rounded">
+                    <i class="fas fa-arrow-left mr-2"></i>基础风险分析
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <div class="container mx-auto p-8 flex-grow">
+        <p class="text-lg text-gray-700 mb-8">{{ intro_text }}</p>
+
+        <div class="mb-8">
+            <!-- 综合风险分布 -->
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4">
+                    <i class="fas fa-chart-bar mr-2"></i>综合风险分布
+                </h2>
+                <div id="scoreDistChart" class="chart-container"></div>
+            </div>
+        </div>
+
+        <!-- 风险指标相关性 -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">
+                <i class="fas fa-project-diagram mr-2"></i>风险指标相关性分析
+            </h2>
+            <div id="correlationChart" class="chart-container" style="height: 500px;"></div>
+        </div>
+
+        <!-- 高风险客户列表 -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">
+                <i class="fas fa-exclamation-triangle mr-2"></i>优先处理的风险客户
+            </h2>
+            <div class="overflow-x-auto">
+                {{ top_at_risk|safe }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏的数据容器 -->
+    <div id="chart-data"
+         data-score='{{ score_chart_data|tojson }}'
+         data-corr='{{ corr_chart_data|tojson }}'
+         style="display: none;">
+    </div>
+
+    <script>
+        // 从data属性中读取数据
+        const dataElement = document.getElementById('chart-data');
+        const scoreData = JSON.parse(dataElement.dataset.score);
+        const corrData = JSON.parse(dataElement.dataset.corr);
+
+        // 综合风险分布图
+        (function() {
+            const scoreChartDom = document.getElementById('scoreDistChart');
+            if (!scoreChartDom) return;
+
+            const scoreChart = echarts.init(scoreChartDom);
+
+            const scoreOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    name: '风险分数区间',
+                    data: scoreData.bins
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '客户数量'
+                },
+                series: [
+                    {
+                        name: '客户数量',
+                        type: 'bar',
+                        data: scoreData.counts,
+                        itemStyle: {
+                            color: function(params) {
+                                // 根据风险分数设置颜色
+                                const index = params.dataIndex;
+                                if (index >= 3) return '#ee6666'; // 高风险
+                                else if (index >= 1) return '#fac858'; // 中风险
+                                return '#91cc75'; // 低风险
+                            }
+                        }
+                    }
+                ]
+            };
+
+            scoreChart.setOption(scoreOption);
+            window.addEventListener('resize', function() {
+                scoreChart.resize();
+            });
+        })();
+
+        // 相关性热力图
+        (function() {
+            const corrChartDom = document.getElementById('correlationChart');
+            if (!corrChartDom) return;
+
+            const corrChart = echarts.init(corrChartDom);
+
+            const corrOption = {
+                tooltip: {
+                    position: 'top',
+                    formatter: function (params) {
+                        return corrData.indicators[params.data[0]] + ' vs ' +
+                               corrData.indicators[params.data[1]] + ': ' +
+                               params.data[2];
+                    }
+                },
+                grid: {
+                    height: '70%',
+                    top: '10%'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: corrData.indicators,
+                    splitArea: {
+                        show: true
+                    }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: corrData.indicators,
+                    splitArea: {
+                        show: true
+                    }
+                },
+                visualMap: {
+                    min: -1,
+                    max: 1,
+                    calculable: true,
+                    orient: 'horizontal',
+                    left: 'center',
+                    bottom: '0%',
+                    inRange: {
+                        color: ['#ee6666', '#ffffff', '#91cc75']
+                    }
+                },
+                series: [{
+                    name: '相关性',
+                    type: 'heatmap',
+                    data: corrData.data,
+                    label: {
+                        show: true
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+
+            corrChart.setOption(corrOption);
+            window.addEventListener('resize', function() {
+                corrChart.resize();
+            });
+        })();
+    </script>
+</body>
+</html>
